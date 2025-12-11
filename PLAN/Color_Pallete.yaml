@@ -1,0 +1,409 @@
+# Design System Configuration
+# ===========================
+# Color Palette
+# ===========================
+colors:
+  # Base Colors (from image)
+  base:
+    beige: "#E8E8C8"
+    light-turquoise: "#9CCDC1"
+    teal: "#4A9B8E"
+    navy: "#2C4A5A"
+  
+  # Extended Palette
+  primary:
+    main: "#4A9B8E"        # Teal - メインアクション
+    light: "#6BB5A7"       # ホバー・アクティブ状態
+    dark: "#3A7D72"        # 押下状態
+    contrast: "#FFFFFF"    # プライマリー上のテキスト
+  
+  secondary:
+    main: "#2C4A5A"        # Navy - サブアクション
+    light: "#3D5F72"       # ホバー状態
+    dark: "#1E3340"        # 押下状態
+    contrast: "#FFFFFF"    # セカンダリー上のテキスト
+  
+  accent:
+    main: "#9CCDC1"        # Light Turquoise - アクセント
+    light: "#B5DDD4"       # 背景用
+    dark: "#7DB5AA"        # ボーダー用
+  
+  neutral:
+    white: "#FFFFFF"
+    beige: "#E8E8C8"       # 背景
+    gray-100: "#F5F5F0"    # 薄いグレー
+    gray-200: "#E0E0D8"    # ボーダー
+    gray-300: "#C8C8B8"    # ディバイダー
+    gray-400: "#A0A090"    # 無効状態
+    gray-500: "#787868"    # プレースホルダー
+    gray-600: "#585848"    # セカンダリーテキスト
+    gray-700: "#383830"    # 本文テキスト
+    gray-800: "#2C4A5A"    # 見出し(Navy)
+    black: "#1A1A18"
+  
+  # Semantic Colors (控えめな色調)
+  semantic:
+    success:
+      main: "#6B9B7F"      # 落ち着いた緑
+      light: "#E8F3ED"     # 背景
+      dark: "#527A63"
+    warning:
+      main: "#C8A868"      # ベージュ寄りの黄色
+      light: "#F5F0E0"     # 背景
+      dark: "#A08850"
+    error:
+      main: "#B87878"      # 落ち着いた赤
+      light: "#F5E8E8"     # 背景
+      dark: "#985E5E"
+    info:
+      main: "#7898B8"      # 落ち着いた青
+      light: "#E8EEF5"     # 背景
+      dark: "#5E7898"
+
+# ===========================
+# Typography
+# ===========================
+typography:
+  font-family:
+    sans: "'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    serif: "'Crimson Pro', 'Noto Serif JP', Georgia, serif"
+    mono: "'JetBrains Mono', 'Consolas', monospace"
+  
+  font-size:
+    xs: "0.75rem"      # 12px
+    sm: "0.875rem"     # 14px
+    base: "1rem"       # 16px
+    lg: "1.125rem"     # 18px
+    xl: "1.25rem"      # 20px
+    "2xl": "1.5rem"    # 24px
+    "3xl": "1.875rem"  # 30px
+    "4xl": "2.25rem"   # 36px
+    "5xl": "3rem"      # 48px
+  
+  font-weight:
+    light: 300
+    normal: 400
+    medium: 500
+    semibold: 600
+    bold: 700
+  
+  line-height:
+    tight: 1.25
+    normal: 1.5
+    relaxed: 1.75
+    loose: 2
+  
+  letter-spacing:
+    tight: "-0.02em"
+    normal: "0"
+    wide: "0.02em"
+    wider: "0.05em"
+
+# ===========================
+# Spacing System
+# ===========================
+spacing:
+  0: "0"
+  1: "0.25rem"    # 4px
+  2: "0.5rem"     # 8px
+  3: "0.75rem"    # 12px
+  4: "1rem"       # 16px
+  5: "1.25rem"    # 20px
+  6: "1.5rem"     # 24px
+  8: "2rem"       # 32px
+  10: "2.5rem"    # 40px
+  12: "3rem"      # 48px
+  16: "4rem"      # 64px
+  20: "5rem"      # 80px
+  24: "6rem"      # 96px
+
+# ===========================
+# Border Radius
+# ===========================
+border-radius:
+  none: "0"
+  sm: "0.25rem"   # 4px - 控えめ
+  base: "0.375rem" # 6px - 基本
+  md: "0.5rem"    # 8px - カード
+  lg: "0.75rem"   # 12px - 大きめ要素
+  xl: "1rem"      # 16px - 特殊要素
+  full: "9999px"  # 完全な円形
+
+# ===========================
+# Shadows
+# ===========================
+shadows:
+  none: "none"
+  sm: "0 1px 2px 0 rgba(44, 74, 90, 0.05)"
+  base: "0 2px 4px 0 rgba(44, 74, 90, 0.08)"
+  md: "0 4px 8px 0 rgba(44, 74, 90, 0.1)"
+  lg: "0 8px 16px 0 rgba(44, 74, 90, 0.12)"
+  xl: "0 16px 32px 0 rgba(44, 74, 90, 0.15)"
+  inner: "inset 0 2px 4px 0 rgba(44, 74, 90, 0.06)"
+  focus: "0 0 0 3px rgba(156, 205, 193, 0.4)"  # Accent color
+
+# ===========================
+# Transitions
+# ===========================
+transitions:
+  duration:
+    fast: "150ms"
+    base: "250ms"
+    slow: "350ms"
+  
+  timing:
+    ease: "ease"
+    ease-in: "ease-in"
+    ease-out: "ease-out"
+    ease-in-out: "ease-in-out"
+    linear: "linear"
+  
+  property:
+    all: "all"
+    colors: "color, background-color, border-color"
+    transform: "transform"
+    opacity: "opacity"
+
+# ===========================
+# Component Styles
+# ===========================
+components:
+  
+  # Buttons
+  button:
+    base:
+      padding: "0.625rem 1.25rem"  # 10px 20px
+      font-size: "1rem"
+      font-weight: 500
+      border-radius: "0.375rem"
+      transition: "all 250ms ease-in-out"
+      cursor: "pointer"
+      border-width: "1px"
+      border-style: "solid"
+    
+    variants:
+      primary:
+        background: "#4A9B8E"
+        color: "#FFFFFF"
+        border-color: "#4A9B8E"
+        hover:
+          background: "#3A7D72"
+          border-color: "#3A7D72"
+        active:
+          background: "#2F6A5E"
+          transform: "translateY(1px)"
+        disabled:
+          background: "#A0A090"
+          border-color: "#A0A090"
+          cursor: "not-allowed"
+          opacity: 0.6
+      
+      secondary:
+        background: "transparent"
+        color: "#4A9B8E"
+        border-color: "#4A9B8E"
+        hover:
+          background: "#E8F3ED"
+          border-color: "#3A7D72"
+        active:
+          background: "#D5E9E0"
+      
+      ghost:
+        background: "transparent"
+        color: "#2C4A5A"
+        border-color: "transparent"
+        hover:
+          background: "#F5F5F0"
+        active:
+          background: "#E0E0D8"
+    
+    sizes:
+      sm:
+        padding: "0.5rem 1rem"
+        font-size: "0.875rem"
+      md:
+        padding: "0.625rem 1.25rem"
+        font-size: "1rem"
+      lg:
+        padding: "0.75rem 1.5rem"
+        font-size: "1.125rem"
+  
+  # Input Fields
+  input:
+    base:
+      padding: "0.625rem 0.875rem"
+      font-size: "1rem"
+      border-radius: "0.375rem"
+      border-width: "1px"
+      border-style: "solid"
+      border-color: "#C8C8B8"
+      background: "#FFFFFF"
+      color: "#383830"
+      transition: "all 250ms ease-in-out"
+    
+    states:
+      focus:
+        border-color: "#4A9B8E"
+        outline: "none"
+        box-shadow: "0 0 0 3px rgba(156, 205, 193, 0.4)"
+      
+      hover:
+        border-color: "#A0A090"
+      
+      disabled:
+        background: "#F5F5F0"
+        color: "#A0A090"
+        cursor: "not-allowed"
+      
+      error:
+        border-color: "#B87878"
+        box-shadow: "0 0 0 3px rgba(184, 120, 120, 0.2)"
+    
+    placeholder:
+      color: "#787868"
+      opacity: 0.7
+  
+  # Cards
+  card:
+    base:
+      background: "#FFFFFF"
+      border-radius: "0.5rem"
+      padding: "1.5rem"
+      box-shadow: "0 2px 4px 0 rgba(44, 74, 90, 0.08)"
+      transition: "all 250ms ease-in-out"
+    
+    hover:
+      box-shadow: "0 8px 16px 0 rgba(44, 74, 90, 0.12)"
+      transform: "translateY(-2px)"
+    
+    variants:
+      outlined:
+        background: "transparent"
+        border: "1px solid #E0E0D8"
+        box-shadow: "none"
+      
+      elevated:
+        box-shadow: "0 8px 16px 0 rgba(44, 74, 90, 0.12)"
+      
+      beige:
+        background: "#E8E8C8"
+        box-shadow: "0 2px 4px 0 rgba(44, 74, 90, 0.06)"
+  
+  # Links
+  link:
+    base:
+      color: "#4A9B8E"
+      text-decoration: "none"
+      transition: "color 250ms ease-in-out"
+      font-weight: 500
+    
+    hover:
+      color: "#3A7D72"
+      text-decoration: "underline"
+    
+    active:
+      color: "#2F6A5E"
+    
+    visited:
+      color: "#6B9B7F"
+  
+  # Badges
+  badge:
+    base:
+      padding: "0.25rem 0.75rem"
+      font-size: "0.875rem"
+      font-weight: 500
+      border-radius: "9999px"
+      display: "inline-flex"
+      align-items: "center"
+    
+    variants:
+      primary:
+        background: "#9CCDC1"
+        color: "#2C4A5A"
+      
+      secondary:
+        background: "#E0E0D8"
+        color: "#383830"
+      
+      success:
+        background: "#E8F3ED"
+        color: "#527A63"
+      
+      warning:
+        background: "#F5F0E0"
+        color: "#A08850"
+      
+      error:
+        background: "#F5E8E8"
+        color: "#985E5E"
+  
+  # Divider
+  divider:
+    base:
+      border-width: "0"
+      border-top-width: "1px"
+      border-style: "solid"
+      border-color: "#E0E0D8"
+      margin: "1.5rem 0"
+    
+    variants:
+      dashed:
+        border-style: "dashed"
+      
+      thick:
+        border-top-width: "2px"
+
+# ===========================
+# Layout
+# ===========================
+layout:
+  container:
+    max-width:
+      sm: "640px"
+      md: "768px"
+      lg: "1024px"
+      xl: "1280px"
+      "2xl": "1536px"
+    
+    padding: "1rem"
+  
+  grid:
+    columns: 12
+    gap: "1.5rem"
+  
+  breakpoints:
+    sm: "640px"
+    md: "768px"
+    lg: "1024px"
+    xl: "1280px"
+    "2xl": "1536px"
+
+# ===========================
+# Z-Index Scale
+# ===========================
+z-index:
+  dropdown: 1000
+  sticky: 1020
+  fixed: 1030
+  modal-backdrop: 1040
+  modal: 1050
+  popover: 1060
+  tooltip: 1070
+
+# ===========================
+# Opacity Scale
+# ===========================
+opacity:
+  0: "0"
+  5: "0.05"
+  10: "0.1"
+  20: "0.2"
+  30: "0.3"
+  40: "0.4"
+  50: "0.5"
+  60: "0.6"
+  70: "0.7"
+  80: "0.8"
+  90: "0.9"
+  100: "1"
