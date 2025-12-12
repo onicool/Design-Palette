@@ -6,7 +6,7 @@ import { ParticleEarth } from './src/components/ParticleEarth';
  */
 function main() {
   const canvas = document.getElementById('earth-canvas');
-  
+
   if (!(canvas instanceof HTMLCanvasElement)) {
     throw new Error('Canvas element not found for particle earth background.');
   }
