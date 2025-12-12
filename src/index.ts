@@ -85,226 +85,442 @@ app.get('/', (c) => {
             ゆるやかに自転する地球のイメージを背景に描画します。
           </p>
         </main>
-<script type="module">
-import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+        <script type="module">
+          import * as THREE from 'https://unpkg.com/three@0.182.0/build/three.module.js';
 
-// ========== Config ==========
-const config = {
-  particleCount: (() => {
-    const width = window.innerWidth;
-    if (width >= 1280) return 15000;
-    if (width >= 768) return 10000;
-    return 6000;
-  })(),
-  rotationSpeed: 0.001,
-  particleSize: 0.05,  // サイズを小さく
-  earthRadius: 9,
-  backgroundColor: '#000814',
-  particleColor: '#00d4ff'
-};
+          const config = {
+            rotationSpeed: 0.001,
+            particleSize: 0.05,
+            earthRadius: 5,
+            backgroundColor: '#000814',
+            particleColor: '#00d4ff',
+          };
 
-// ========== Earth Particles ==========
-const goldenRatio = (1 + Math.sqrt(5)) / 2;
+          const goldenRatio = (1 + Math.sqrt(5)) / 2;
 
-function generateSpherePoints(count, radius) {
-  const positions = new Float32Array(count * 3);
+          function generateSpherePoints(count, radius) {
+            const positions = new Float32Array(count * 3);
 
-  for (let i = 0; i < count; i++) {
-    const theta = (2 * Math.PI * i) / goldenRatio;
-    const phi = Math.acos(1 - (2 * (i + 0.5)) / count);
+            for (let i = 0; i < count; i++) {
+              const theta = (2 * Math.PI * i) / goldenRatio;
+              const phi = Math.acos(1 - (2 * (i + 0.5)) / count);
 
-    const x = radius * Math.sin(phi) * Math.cos(theta);
-    const y = radius * Math.sin(phi) * Math.sin(theta);
-    const z = radius * Math.cos(phi);
+              const x = radius * Math.sin(phi) * Math.cos(theta);
+              const y = radius * Math.sin(phi) * Math.sin(theta);
+              const z = radius * Math.cos(phi);
 
-    positions[i * 3] = x;
-    positions[i * 3 + 1] = y;
-    positions[i * 3 + 2] = z;
-  }
+              positions[i * 3] = x;
+              positions[i * 3 + 1] = y;
+              positions[i * 3 + 2] = z;
+            }
 
-  return positions;
-}
+            return positions;
+          }
 
-function createParticleSystem(points, color, size) {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
+          function createParticleSystem(points, color, size) {
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
 
-  const material = new THREE.PointsMaterial({
-    color: new THREE.Color(color),
-    size,
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0.6,  // 透明度を下げて粒感を出す
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
+            const material = new THREE.PointsMaterial({
+              color: new THREE.Color(color),
+              size,
+              sizeAttenuation: true,
+              transparent: true,
+              opacity: 0.6,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            });
 
-  const particles = new THREE.Points(geometry, material);
-  particles.frustumCulled = false;
-  return { particles, geometry, material };
-}
+            const particles = new THREE.Points(geometry, material);
+            particles.frustumCulled = false;
 
-// ========== Scene Setup ==========
-function initScene(targetCanvas) {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(config.backgroundColor);
+            return { particles, geometry, material };
+          }
 
-  const camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-  camera.position.set(0, 0, 15);
+          function createGlowLayer(baseGeometry, baseMaterial) {
+            const glowGeometry = baseGeometry.clone();
+            const glowMaterial = baseMaterial.clone();
+            glowMaterial.size = baseMaterial.size * 1.5;
+            glowMaterial.opacity = 0.15;
+            glowMaterial.depthWrite = false;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas: targetCanvas,
-    antialias: true,
-    alpha: true,
-    powerPreference: 'high-performance'
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(new THREE.Color(config.backgroundColor), 1);
+            const glow = new THREE.Points(glowGeometry, glowMaterial);
+            glow.scale.set(1.01, 1.01, 1.01);
 
-  return { scene, camera, renderer };
-}
+            return { glow, glowGeometry, glowMaterial };
+          }
 
-function setupLighting(scene) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 3, 5);
-  scene.add(ambientLight, directionalLight);
-}
+          function getOptimalParticleCount() {
+            const width = window.innerWidth;
 
-function isWebGLSupported() {
-  const canvasCheck = document.createElement('canvas');
-  const context =
-    canvasCheck.getContext('webgl') || canvasCheck.getContext('experimental-webgl');
-  return !!context;
-}
+            if (width >= 1280) return 15000;
+            if (width >= 768) return 10000;
+            return 6000;
+          }
 
-// ========== Animation ==========
-class PulseEffect {
-  constructor() {
-    this.time = 0;
-    this.pulseSpeed = 0.002;
-    this.pulseAmplitude = 0.05;
-  }
+          function initScene(canvas, backgroundColor) {
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(backgroundColor);
 
-  update(target) {
-    this.time += this.pulseSpeed;
-    const scale = 1 + Math.sin(this.time) * this.pulseAmplitude;
-    target.scale.set(scale, scale, scale);
-  }
-}
+            const camera = new THREE.PerspectiveCamera(
+              60,
+              window.innerWidth / window.innerHeight,
+              0.1,
+              1000
+            );
+            camera.position.set(0, 0, 15);
 
-class AnimationController {
-  constructor(renderer, scene, camera, earth, pulseEffect) {
-    this.renderer = renderer;
-    this.scene = scene;
-    this.camera = camera;
-    this.earth = earth;
-    this.pulseEffect = pulseEffect;
-    this.animationId = null;
-    this.handleVisibility = this.handleVisibility.bind(this);
-  }
+            const renderer = new THREE.WebGLRenderer({
+              canvas,
+              antialias: true,
+              alpha: true,
+              powerPreference: 'high-performance',
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(new THREE.Color(backgroundColor), 1);
 
-  start() {
-    if (this.animationId !== null) return;
+            return { scene, camera, renderer };
+          }
 
-    const animate = () => {
-      this.animationId = requestAnimationFrame(animate);
-      this.earth.rotation.y += config.rotationSpeed;
-      this.earth.rotation.x = Math.PI * 0.1;
-      this.pulseEffect.update(this.earth);
-      this.renderer.render(this.scene, this.camera);
-    };
+          function setupLighting(scene) {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 3, 5);
+            scene.add(ambientLight, directionalLight);
+          }
 
-    animate();
-    document.addEventListener('visibilitychange', this.handleVisibility);
-  }
+          function isWebGLSupported() {
+            const canvas = document.createElement('canvas');
+            const context =
+              canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            return !!context;
+          }
 
-  handleVisibility() {
-    if (document.visibilityState === 'hidden') {
-      if (this.animationId !== null) {
-        cancelAnimationFrame(this.animationId);
-        this.animationId = null;
-      }
-    } else if (this.animationId === null) {
-      this.start();
-    }
-  }
+          class PulseEffect {
+            constructor() {
+              this.time = 0;
+              this.pulseSpeed = 0.002;
+              this.pulseAmplitude = 0.05;
+            }
 
-  dispose() {
-    if (this.animationId !== null) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-    }
-    document.removeEventListener('visibilitychange', this.handleVisibility);
-  }
-}
+            update(target) {
+              this.time += this.pulseSpeed;
+              const scale = 1 + Math.sin(this.time) * this.pulseAmplitude;
+              target.scale.set(scale, scale, scale);
+            }
+          }
 
-// ========== Main ==========
-function main() {
-  const canvas = document.getElementById('earth-canvas');
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    throw new Error('Canvas element not found for particle earth background.');
-  }
+          class AnimationController {
+            constructor(renderer, scene, camera, earth, pulseEffect, rotationSpeed = 0.001) {
+              this.renderer = renderer;
+              this.scene = scene;
+              this.camera = camera;
+              this.earth = earth;
+              this.pulseEffect = pulseEffect;
+              this.rotationSpeed = rotationSpeed;
+              this.animationId = null;
+              this.handleVisibility = this.onVisibilityChange.bind(this);
+            }
 
-  if (!isWebGLSupported()) {
-    document.body.classList.add('no-webgl');
-    return;
-  }
+            start() {
+              if (this.animationId !== null) return;
 
-  const { scene, camera, renderer } = initScene(canvas);
-  setupLighting(scene);
+              const animate = () => {
+                this.animationId = requestAnimationFrame(animate);
+                this.earth.rotation.y += this.rotationSpeed;
+                this.earth.rotation.x = Math.PI * 0.1;
+                this.pulseEffect.update(this.earth);
+                this.renderer.render(this.scene, this.camera);
+              };
 
-  const positions = generateSpherePoints(config.particleCount, config.earthRadius);
-  const { particles, geometry, material } = createParticleSystem(
-    positions,
-    config.particleColor,
-    config.particleSize
-  );
+              animate();
+              document.addEventListener('visibilitychange', this.handleVisibility);
+            }
 
-  const glowGeometry = geometry.clone();
-  const glowMaterial = material.clone();
-  glowMaterial.size = material.size * 1.5;  // グローを控えめに
-  glowMaterial.opacity = 0.15;  // グローの透明度を下げる
-  glowMaterial.depthWrite = false;
-  const glow = new THREE.Points(glowGeometry, glowMaterial);
-  glow.scale.set(1.01, 1.01, 1.01);  // スケールも控えめに
+            onVisibilityChange() {
+              if (document.visibilityState === 'hidden') {
+                if (this.animationId !== null) {
+                  cancelAnimationFrame(this.animationId);
+                  this.animationId = null;
+                }
+              } else if (this.animationId === null) {
+                this.start();
+              }
+            }
 
-  scene.add(particles);
-  scene.add(glow);
+            dispose() {
+              if (this.animationId !== null) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+              }
+              document.removeEventListener('visibilitychange', this.handleVisibility);
+            }
+          }
 
-  const pulse = new PulseEffect();
-  const controller = new AnimationController(renderer, scene, camera, particles, pulse);
-  controller.start();
+          class MouseTracker {
+            constructor() {
+              this.state = {
+                x: 0,
+                y: 0,
+                normalizedX: 0,
+                normalizedY: 0,
+                isMoving: false,
+                isHovering: false,
+              };
+              this.movementTimeout = null;
+            }
 
-  const handleResize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  };
+            init(element) {
+              element.addEventListener('mousemove', (e) => {
+                this.state.x = e.clientX;
+                this.state.y = e.clientY;
+                this.state.normalizedX = (e.clientX / window.innerWidth) * 2 - 1;
+                this.state.normalizedY = -(e.clientY / window.innerHeight) * 2 + 1;
+                this.state.isMoving = true;
 
-  window.addEventListener('resize', handleResize);
+                if (this.movementTimeout) clearTimeout(this.movementTimeout);
+                this.movementTimeout = window.setTimeout(() => {
+                  this.state.isMoving = false;
+                }, 150);
+              });
 
-  window.addEventListener('beforeunload', () => {
-    controller.dispose();
-    window.removeEventListener('resize', handleResize);
-    geometry.dispose();
-    material.dispose();
-    glowGeometry.dispose();
-    glowMaterial.dispose();
-    renderer.dispose();
-  });
-}
+              element.addEventListener('mouseenter', () => {
+                this.state.isHovering = true;
+              });
 
-main();
+              element.addEventListener('mouseleave', () => {
+                this.state.isHovering = false;
+              });
+            }
+
+            getState() {
+              return this.state;
+            }
+          }
+
+          class CameraController {
+            constructor() {
+              this.targetRotation = { x: 0, y: 0 };
+              this.currentRotation = { x: 0, y: 0 };
+              this.smoothness = 0.05;
+            }
+
+            update(mouseState, earth) {
+              if (!mouseState.isHovering) {
+                this.targetRotation.x = 0;
+                this.targetRotation.y = 0;
+              } else {
+                this.targetRotation.x = mouseState.normalizedY * 0.3;
+                this.targetRotation.y = mouseState.normalizedX * 0.3;
+              }
+
+              this.currentRotation.x +=
+                (this.targetRotation.x - this.currentRotation.x) * this.smoothness;
+              this.currentRotation.y +=
+                (this.targetRotation.y - this.currentRotation.y) * this.smoothness;
+
+              earth.rotation.x = Math.PI * 0.1 + this.currentRotation.x;
+            }
+
+            getRotationSpeedModifier(mouseState) {
+              if (mouseState.isHovering && mouseState.isMoving) {
+                return 1.0 + Math.abs(this.currentRotation.y) * 2;
+              }
+              return 1.0;
+            }
+          }
+
+          class HoverEffect {
+            constructor(baseSize) {
+              this.baseSize = baseSize;
+              this.hoverSize = baseSize * 1.3;
+              this.currentSize = baseSize;
+            }
+
+            update(isHovering, material) {
+              const targetSize = isHovering ? this.hoverSize : this.baseSize;
+              this.currentSize += (targetSize - this.currentSize) * 0.1;
+              material.size = this.currentSize;
+            }
+          }
+
+          class ResizeHandler {
+            constructor(camera, renderer) {
+              this.camera = camera;
+              this.renderer = renderer;
+              this.resizeTimeout = null;
+              this.boundHandleResize = this.handleResize.bind(this);
+            }
+
+            init() {
+              window.addEventListener('resize', this.boundHandleResize);
+            }
+
+            handleResize() {
+              if (this.resizeTimeout !== null) {
+                clearTimeout(this.resizeTimeout);
+              }
+
+              this.resizeTimeout = window.setTimeout(() => {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+              }, 100);
+            }
+
+            dispose() {
+              window.removeEventListener('resize', this.boundHandleResize);
+              if (this.resizeTimeout !== null) {
+                clearTimeout(this.resizeTimeout);
+              }
+            }
+          }
+
+          class AnimationControllerWithMouse extends AnimationController {
+            constructor(
+              renderer,
+              scene,
+              camera,
+              earth,
+              pulseEffect,
+              baseRotationSpeed,
+              mouseTracker,
+              cameraController,
+              hoverEffect,
+              material
+            ) {
+              super(renderer, scene, camera, earth, pulseEffect, baseRotationSpeed);
+              this.baseRotationSpeed = baseRotationSpeed;
+              this.mouseTracker = mouseTracker;
+              this.cameraController = cameraController;
+              this.hoverEffect = hoverEffect;
+              this.material = material;
+            }
+
+            start() {
+              if (this.animationId !== null) return;
+
+              const animate = () => {
+                this.animationId = requestAnimationFrame(animate);
+
+                const mouseState = this.mouseTracker.getState();
+
+                this.cameraController.update(mouseState, this.earth);
+                this.hoverEffect.update(mouseState.isHovering, this.material);
+                const speedModifier = this.cameraController.getRotationSpeedModifier(mouseState);
+                this.earth.rotation.y += this.baseRotationSpeed * speedModifier;
+                this.pulseEffect.update(this.earth);
+
+                this.renderer.render(this.scene, this.camera);
+              };
+
+              animate();
+              document.addEventListener('visibilitychange', this.handleVisibility);
+            }
+          }
+
+          class ParticleEarth {
+            constructor(canvas, customConfig) {
+              this.canvas = canvas;
+              this.config = { ...config, ...customConfig };
+              this.geometries = [];
+              this.materials = [];
+            }
+
+            init() {
+              if (!isWebGLSupported()) {
+                document.body.classList.add('no-webgl');
+                return false;
+              }
+
+              const { scene, camera, renderer } = initScene(
+                this.canvas,
+                this.config.backgroundColor
+              );
+              this.scene = scene;
+              this.camera = camera;
+              this.renderer = renderer;
+
+              setupLighting(this.scene);
+
+              const particleCount = getOptimalParticleCount();
+              const positions = generateSpherePoints(particleCount, this.config.earthRadius);
+              const { particles, geometry, material } = createParticleSystem(
+                positions,
+                this.config.particleColor,
+                this.config.particleSize
+              );
+              this.earth = particles;
+              this.geometries.push(geometry);
+              this.materials.push(material);
+
+              const { glow, glowGeometry, glowMaterial } = createGlowLayer(geometry, material);
+              this.glow = glow;
+              this.geometries.push(glowGeometry);
+              this.materials.push(glowMaterial);
+
+              this.scene.add(this.earth);
+              this.scene.add(this.glow);
+
+              this.mouseTracker = new MouseTracker();
+              this.mouseTracker.init(document.body);
+
+              this.cameraController = new CameraController();
+              this.hoverEffect = new HoverEffect(this.config.particleSize);
+
+              const pulse = new PulseEffect();
+              this.animationController = new AnimationControllerWithMouse(
+                this.renderer,
+                this.scene,
+                this.camera,
+                this.earth,
+                pulse,
+                this.config.rotationSpeed,
+                this.mouseTracker,
+                this.cameraController,
+                this.hoverEffect,
+                material
+              );
+              this.animationController.start();
+
+              this.resizeHandler = new ResizeHandler(this.camera, this.renderer);
+              this.resizeHandler.init();
+
+              return true;
+            }
+
+            dispose() {
+              this.animationController?.dispose();
+              this.resizeHandler?.dispose();
+              this.geometries.forEach((g) => g.dispose());
+              this.materials.forEach((m) => m.dispose());
+              this.renderer?.dispose();
+            }
+          }
+
+          function main() {
+            const canvas = document.getElementById('earth-canvas');
+            if (!(canvas instanceof HTMLCanvasElement)) {
+              throw new Error('Canvas element not found for particle earth background.');
+            }
+
+            const particleEarth = new ParticleEarth(canvas);
+            const initialized = particleEarth.init();
+
+            if (!initialized) {
+              console.error('Failed to initialize ParticleEarth: WebGL not supported');
+              return;
+            }
+
+            window.addEventListener('beforeunload', () => {
+              particleEarth.dispose();
+            });
+          }
+
+          main();
         </script>
-
       </body>
     </html>`;
 
